@@ -11,7 +11,7 @@ const wallets = [
     name: 'Gatehub',
     image: 'gatehub_logo.svg',
     link: 'https://gatehub.net'
-  }
+  },
 ]
 
 const providers = [
@@ -32,14 +32,14 @@ const browsers = [
 
 const search = [
   {
-    name: 'Runnaroo',
-    image: 'runnaroo_logo.svg',
-    link: 'https://www.runnaroo.com'
-  },
-  {
     name: 'Infinity Search',
     image: 'infinity_search_logo.svg',
     link: 'https://infinitysearch.co'
+  },
+  {
+    name: 'Mojeek',
+    image: 'mojeek_logo.svg',
+    link: 'https://www.mojeek.com'
   }
 ]
 
