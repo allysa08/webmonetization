@@ -1,0 +1,8 @@
+<link rel="monetization" href="https://example.com/pay">
+<script>
+  const link = document.createElement("link");
+
+  if (link.relList.supports("monetization")) {
+    console.log("Web Monetization is supported.");
+  }
+</script>

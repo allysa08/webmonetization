@@ -1,0 +1,247 @@
+---
+import i18next, { t, changeLanguage } from "i18next";
+import Base from "../layouts/Base.astro";
+import data from "../data/home.json";
+import contributors from "../data/contributors.json";
+import CardList from "../components/pages/CardList.astro";
+import PrCta from "../components/pages/PrCta.astro";
+
+changeLanguage("en");
+
+const title = t("site.title");
+const description = t("site.description");
+const pluginsList = data.plugins.filter(function(plugin){
+  return plugin.version.includes("2.0");         
+})
+---
+<Base title={title} description={description}>
+  <section class="section hero">
+    <div class="contentWrapperSm">
+      <img
+        alt="Web Monetization Icon"
+        class="heroIcon"
+        src="/img/wm-logo--animated.svg"
+        width="120"
+        height="86"
+      />
+      <h1 class="heading2">Web Monetization</h1>
+      <p class="heroTagline heading4">
+        The Web Monetization API allows websites to automatically and
+        passively receive payments from Web Monetization-enabled visitors.
+      </p>
+    </div>
+    <footer class="heroFooter">
+      <div class="contentWrapperSm">
+        <p>
+          Web Monetization is being proposed as a W3C standard at <a
+            href="https://wicg.io/"
+            rel="noreferrer noopener"
+            target="_blank"
+            data-umami-event="Landing page - Spec"
+          >
+            the Web Platform Incubator Community Group</a>.
+        </p>
+      </div>
+    </footer>
+  </section>
+  <section class="section">
+    <div class="contentWrapperLg twoColGrid">
+      <div class="gridItem">
+        <h2 class="heading3">Motivation</h2>
+        <p>
+          The ability to transfer money has been a long-standing omission
+          from the web platform. As a result, the web suffers from a flood
+          of advertising and broken business models. Web Monetization
+          provides an open, native, efficient, and automatic way to
+          compensate creators, pay for content, and support crucial web
+          infrastructure.
+        </p>
+      </div>
+      <div class="gridItem">
+        <h2 class="heading3">Why Now?</h2>
+        <p>
+          Until recently, there hasn't been an open, neutral and cost-efficient protocol for transferring money. <a href="https://interledger.org" rel="noreferrer noopener" target="_blank" data-umami-event="Landing page - ILP docs">Interledger</a> provides a simple, interoperable, and currency-agnostic method for the transfer of small amounts of money. This opens up the possibility for streaming money, which makes more Web Monetization use cases possible for the first time.
+        </p>
+      </div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="contentWrapperLg">
+      {data.wallets.length > 0 && (
+        <div class="gridItem">
+          <div class="sectionHeader">
+            <h2 class="heading3">Web Monetization Wallets</h2>
+            <p>
+              These providers offer ILP-enabled wallets that you can use to
+              become Web Monetized:
+            </p>
+          </div>
+          <div class="cards">
+            <CardList cards={data.wallets} />
+          </div>
+          <PrCta label="wallet" />
+        </div>
+      )}
+      {data.search.length > 0 && (
+        <div class="gridItem">
+          <div class="sectionHeader">
+            <h2 class="heading3">
+              Web Monetization Enabled Search Engines
+            </h2>
+            <p>These search engines implement Web Monetization features:</p>
+          </div>
+          <div class="cards">
+            <CardList cards={data.search} />
+          </div>
+          <PrCta label="search engine" />
+        </div>
+      )}
+    </div>
+  </section>
+  {data.providers.length > 0 && (
+    <section class="section">
+      <div class="contentWrapperLg">
+        <div class="sectionHeader">
+          <h2 class="heading3">Web Monetization Providers</h2>
+          <p>These providers offer Web Monetization services:</p>
+        </div>
+        <div class="cards">
+          <CardList cards={data.providers} />
+        </div>
+        <PrCta label="provider" />
+      </div>
+    </section>
+  )}
+  {data.browsers.length > 0 && (
+    <section class="section">
+      <div class="contentWrapperLg">
+        <div class="sectionHeader">
+          <h2 class="heading3">
+            Web Monetization Supported Browsers
+          </h2>
+          <p>
+            These browsers implement Web Monetization natively or via an
+            extension:
+          </p>
+        </div>
+        <div class="cards">
+          <CardList cards={data.browsers} />
+        </div>
+        <PrCta label="browser" />
+      </div>
+    </section>
+  )}
+  {data.plugins.length > 0 && (
+    <section class="section">
+      <div class="contentWrapperLg">
+        <div class="sectionHeader">
+          <h2 class="heading3">Web Monetization Libraries/Plugins</h2>
+          <p>There have been a number of libraries and plugins developed over the years to enable Web Monetization features on your website, but a lot of them need updating to conform to the latest specification. If you would like to help out this effort, please check out the <a href="/docs/resources/libraries" data-umami-event="Landing page - WebMo libraries">full list</a>. These plugins have already been updated:</p>
+        </div>
+        <div class="cards">
+          <CardList cards={pluginsList} />
+        </div>
+        <PrCta label="plugin" />
+      </div>
+    </section>
+  )}
+  <section class="section">
+    <div class="contentWrapperLg">
+      <div class="sectionHeader">
+        <h2 class="heading3">Tools</h2>
+      </div>
+      <div class="threeColGrid toolsList">
+        <a class="gridItem" href="/play" data-umami-event="Landing page - Playground">
+          <h3 class="heading4">Web Monetization Playground</h3>
+          <p>Explore how Web Monetization works</p>
+        </a>
+
+        <a class="gridItem" href="/link-tag" data-umami-event="Landing page - Link tag">
+          <h3 class="heading4">Link Tag Generator</h3>
+          <p>Generate a Web Monetization link tag for your site</p>
+        </a>
+
+        <a class="gridItem" href="/prob-revshare" data-umami-event="Landing page - Prob rev share">
+          <h3 class="heading4">Probabilistic RevShare Generator</h3>
+          <p>Split Web Monetization revenue between payment pointers</p>
+        </a>
+      </div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="contentWrapperLg">
+      <div class="sectionHeader">
+        <h2 class="heading3">Contributors</h2>
+        <p>Thank you to all our contributors.</p>
+      </div>
+      {contributors.length > 0 && (
+        <ul class="contributors">
+          {contributors.map((contributor) => (
+            <li class="contributor">
+              <a href={contributor.html_url}>
+                <img alt={contributor.login} src={contributor.avatar_url} />
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </section>
+</Base>
+
+<style>
+/* Hero section styles */
+.hero {
+  background-image: url("/img/bg-lines--light.svg"), url("/img/bg-tile.svg");
+  background-repeat: repeat-x, repeat;
+  background-size: 17em, 20em;
+  background-position: bottom, center;
+  margin-block-end: var(--space-xl);
+  text-align: center;
+}
+.heroIcon {
+  width: 120px;
+  margin-block-end: var(--space-s);
+  margin-inline: auto;
+}
+
+.hero h1 {
+  color: var(--wm-accent);
+}
+
+/* Card wrapper styles */
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-s);
+  margin-block-end: var(--space-s);
+  justify-content: center;
+}
+
+/* Tools list styles */
+.toolsList {
+  justify-content: center;
+}
+
+.toolsList a {
+  text-align: center;
+  cursor: pointer;
+}
+/* Contributor section styles */
+.contributors {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: 0;
+}
+
+.contributor {
+  flex: 0 0 3em;
+}
+
+.contributor img {
+  border-radius: 50%;
+}
+</style>

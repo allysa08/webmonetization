@@ -1,0 +1,439 @@
+---
+import i18next, { t, changeLanguage } from 'i18next'
+import Base from "../layouts/Base.astro";
+
+changeLanguage("en");
+
+const title = `Playground | ${t("site.title")}`;
+const description = t("site.description");
+---
+
+<Base title={title} description={description} hasFooter={false}>
+  <section class="section">
+    <div class="contentWrapperMd">
+      <h1 class="heading2">Web Monetization Playground</h1>
+      <div class='form-wrapper'>
+        <form id='walletAddressForm'>
+          <div class='form-field'>
+            <label for='walletAddressUrl'>Wallet address/Payment pointer</label>
+            <input
+              type='text'
+              id='walletAddressUrl'
+              name='walletAddressUrl'
+              required
+            />
+          </div>
+          <button class='btn full-width' type='submit' data-umami-event='Play page - Add WebMo link' disabled>
+            Add monetization link
+          </button>
+          <p>Checking if your browser supports Web Monetization...</p>
+        </form>
+      </div>
+    </div>
+    <div id='link-events' class="link-events"></div>
+  </section>
+</Base>
+
+<style>
+  :root {
+    --white: #fff;
+    --light-teal: #def4ef;
+    --bright-teal: #a4eae8;
+    --teal: #007777;
+  }
+
+  body {
+    background-image: url('/img/bg-tile.svg');
+    background-size: 25em;
+  }
+
+  h1 {
+    text-align: center;
+  }
+
+  button {
+    &.full-width {
+      width: 100%;
+    }
+
+    &:disabled {
+      filter: grayscale(1);
+      cursor: not-allowed;
+
+      &:hover,
+      &:focus {
+        text-decoration-color: transparent;
+      }
+    }
+  }
+
+  .form-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-inline: auto;
+
+    form {
+      width: 100%;
+      max-width: 25em;
+    }
+
+    p {
+      margin-block-start: var(--space-3xs);
+      text-align: center;
+    }
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    margin-block-end: var(--space-m);
+
+    label {
+      white-space: nowrap;
+      margin-block-end: var(--space-3xs);
+    }
+  }
+
+  .link-events {
+    padding-inline: var(--space-s);
+    margin-block-start: var(--space-l);
+
+    div[data-wallet-address] {
+      border-radius: var(--border-radius);
+      padding: var(--space-xs);
+      background-color: var(--light-teal);
+      font-size: var(--step--1);
+      margin-block-end: var(--space-s);
+
+      & .log-header {
+        color: var(--teal);
+
+        & h4 {
+          overflow-x: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          text-align: center;
+          margin-block-end: var(--space-2xs);
+        }
+      }
+
+      & .actions {
+        display: flex;
+        gap: var(--space-xs);
+        justify-content: center;
+        flex: none;
+      }
+
+      & .amount {
+        margin-block-end: var(--space-2xs);
+      }
+
+      & ul.events {
+        font-family: var(--sl-font-system-mono);
+        min-height: 20rem;
+        max-height: 20rem;
+        margin-block: var(--space-2xs);
+        padding-block-start: var(--space-2xs);
+        padding-inline-start: var(--space-2xs);
+        list-style: none;
+        overflow-y: auto;
+        white-space: nowrap;
+
+        & li {
+          margin-block-end: var(--space-3xs);
+        }
+
+        & details {
+          & summary {
+            cursor: pointer;
+            & span {
+              text-decoration: underline dotted;
+              text-underline-offset: 2px;
+            }
+          }
+
+          pre {
+            padding: var(--space-2xs);
+            margin-inline-start: var(--space-s);
+          }
+        }
+      }
+    }
+  }
+
+  @media screen and (max-width: 425px) {
+    .link-events {
+      div[data-wallet-address] {
+        & .log-header {
+          & h4 {
+            text-align: center;
+            font-size: smaller;
+            margin-block-end: var(--space-2xs);
+          }
+        }
+      }
+    }
+  }
+
+  @media screen and (min-width: 768px) {
+    .link-events {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(50ch, 1fr));
+      gap: var(--space-s);
+
+      div[data-wallet-address] {
+        margin-block-end: 0;
+
+        & .log-header {
+          display: flex;
+          gap: var(--space-xs);
+          align-items: center;
+          justify-content: space-between;
+
+          & h4 {
+            margin-block-end: 0;
+          }
+        }
+      }
+    }
+  }
+</style>
+
+<script>
+  const form = document.querySelector('#walletAddressForm') as HTMLFormElement
+  const notice = document.querySelector('p') as HTMLParagraphElement
+  const input = form.querySelector('input') as HTMLInputElement
+  const submitButton = form.querySelector('button') as HTMLButtonElement
+  const linkEvents = document.querySelector('#link-events') as HTMLDivElement
+
+  if (window.MonetizationEvent) {
+    submitButton.disabled = false
+    notice.style.display = 'none'
+    addTagsFromURL()
+  } else {
+    setTimeout(() => {
+      if (!window.MonetizationEvent) {
+        notice.textContent = 'Your browser does not support Web Monetization.'
+        notice.style.display = 'block'
+        notice.classList.add('error')
+        submitButton.disabled = true
+      } else {
+        submitButton.disabled = false
+        notice.style.display = 'none'
+        addTagsFromURL()
+      }
+    }, 500)
+  }
+
+  async function createLinkTag(href: string) {
+    const link = document.createElement('link')
+
+    link.rel = 'monetization'
+    link.href = href
+    link.addEventListener('monetization', onMonetizationListener)
+    link.addEventListener('load', onLoadListener)
+    link.addEventListener('error', onErrorListener)
+    link.dataset.walletAddress = href
+
+    document.head.append(link)
+  }
+
+  async function createLinkEventLog(href: string) {
+    const header = document.createElement('div')
+    header.classList.add('log-header')
+
+    const title = document.createElement('h4')
+    title.textContent = href
+
+    const actions = document.createElement('div')
+    actions.classList.add('actions')
+
+    const disableButton = document.createElement('button')
+    disableButton.textContent = 'Disable'
+    disableButton.classList.add('btn', 'outline')
+    disableButton.addEventListener('click', () => {
+      const link = document.querySelector(
+        `link[rel='monetization'][href='${href}']`
+      ) as HTMLLinkElement
+      link.disabled = !link.disabled
+      disableButton.textContent = link.disabled ? 'Enable' : 'Disable'
+    })
+
+    const removeButton = document.createElement('button')
+    removeButton.textContent = 'Remove'
+    removeButton.classList.add('btn', 'outline')
+    removeButton.addEventListener('click', () => {
+      const link = document.querySelector(
+        `link[rel='monetization'][href='${href}']`
+      ) as HTMLLinkElement
+      link.remove()
+      const eventLog = document.querySelector(
+        `#link-events div[data-wallet-address='${href}']`
+      ) as HTMLDivElement
+      eventLog.remove()
+    })
+
+    const clearButton = document.createElement('button')
+    clearButton.textContent = 'Clear events'
+    clearButton.classList.add('btn', 'outline')
+    clearButton.addEventListener('click', () => {
+      const ul = document.querySelector(
+        `#link-events div[data-wallet-address='${href}'] ul.events`
+      ) as HTMLDivElement
+      ul.innerHTML = ''
+    })
+
+    actions.append(disableButton)
+    actions.append(clearButton)
+    actions.append(removeButton)
+
+    header.append(title)
+    header.append(actions)
+
+    const eventLog = document.createElement('div')
+    eventLog.dataset.walletAddress = href
+
+    const events = document.createElement('ul')
+    events.classList.add('events')
+
+    eventLog.append(header)
+    eventLog.append(events)
+
+    linkEvents.append(eventLog)
+  }
+
+  function getLinkEventLog(event: Event): HTMLDivElement | null {
+    if (!(event.target instanceof HTMLLinkElement)) return null
+    if (!event.target.isConnected) return null
+
+    return document.querySelector(
+      `#link-events div[data-wallet-address='${event.target.dataset.walletAddress}'] ul.events`
+    ) as HTMLDivElement
+  }
+
+  function capitalize(str: string) {
+    return str.charAt(0).toUpperCase() + str.slice(1)
+  }
+
+  function createLog(
+    div: HTMLDivElement,
+    type: string,
+    event?: MonetizationEvent
+  ) {
+    const log = document.createElement('li')
+
+    const time = new Date().toLocaleTimeString()
+    let slot = `${capitalize(type)} Event`
+
+    if (event) {
+      const details = document.createElement('details')
+      const summary = document.createElement('summary')
+      const span = document.createElement('span')
+      span.textContent = `${slot} - ${event.amountSent.value} ${event.amountSent.currency}`
+      summary.append(`[${time}] `)
+      summary.append(span)
+      details.append(summary)
+
+      const pre = document.createElement('pre')
+      pre.textContent = JSON.stringify(event, null, 2)
+      details.append(pre)
+
+      log.append(details)
+    } else {
+      if (type === 'error') {
+        slot += ` (Check browser console)`
+      }
+
+      const spacer = document.createElement('span')
+      spacer.append(` [${time}] ${slot}`)
+      log.append(spacer)
+    }
+
+    div.prepend(log)
+  }
+
+  function onMonetizationListener(event: MonetizationEvent) {
+    const linkEventLog = getLinkEventLog(event)
+    if (!linkEventLog) return
+
+    if (linkEventLog.dataset.incomingPayment !== event.incomingPayment) {
+      linkEventLog.dataset.incomingPayment = event.incomingPayment
+    }
+
+    createLog(linkEventLog, event.type, event)
+  }
+
+  function onLoadListener(event: Event) {
+    const linkEventLog = getLinkEventLog(event)
+    if (!linkEventLog) return
+
+    createLog(linkEventLog, event.type)
+  }
+
+  function onErrorListener(event: Event) {
+    const linkEventLog = getLinkEventLog(event)
+    if (!linkEventLog) return
+
+    createLog(linkEventLog, event.type)
+  }
+
+  function toWalletAddressUrl(s: string): string {
+    return s.startsWith('$') ? s.replace('$', 'https://') : s
+  }
+
+  input.addEventListener('input', function () {
+    this.setCustomValidity('')
+  })
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault()
+
+    const formData = new FormData(form)
+    const walletAddress = formData.get('walletAddressUrl')?.valueOf()
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      input.setCustomValidity('Please fill the wallet address URL field.')
+      return false
+    }
+
+    const walletAddressUrl = toWalletAddressUrl(walletAddress)
+
+    if (addressAlreadyAdded(walletAddressUrl)) {
+      input.setCustomValidity(`${walletAddress} already exists in the page.`)
+      input.reportValidity()
+      return false
+    }
+
+    await createLinkEventLog(walletAddressUrl)
+    await createLinkTag(walletAddressUrl)
+
+    form.reset()
+  })
+
+  async function addTagsFromURL() {
+    const walletAddressUrls = new URLSearchParams(location.search).getAll('wa')
+    for (const url of walletAddressUrls) {
+      if (isWalletAddressUrl(url) && !addressAlreadyAdded(url)) {
+        await createLinkEventLog(url)
+        await createLinkTag(url)
+      }
+    }
+  }
+
+  function isWalletAddressUrl(s: string): boolean {
+    try {
+      return !!new URL(s)
+    } catch {
+      return false
+    }
+  }
+
+  function addressAlreadyAdded(walletAddressUrl: string) {
+    // current implementation of playground doesn't support adding same link tag twice
+    // BUG: it should be allowed
+    return !!document.querySelector(
+      `[data-wallet-address='${walletAddressUrl}']`
+    )
+  }
+</script>
